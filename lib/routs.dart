@@ -1,5 +1,5 @@
 
-import 'package:dash_fixit/view/Screen/home.dart';
+import 'package:dash_fixit/view/Screen/Home.dart';
 import 'package:dash_fixit/view/Screen/sign_in.dart';
 import 'package:dash_fixit/view/Screen/splash_screen.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
@@ -14,8 +14,8 @@ List<GetPage<dynamic>>? routes =[
   GetPage(name:'/', page: () =>const SplachScreen()),
 
 // Auth
-  GetPage(name:AppRoute.SignIn , page: () => const SignIn()),
-  GetPage(name:AppRoute.HomePage , page: () => const HomePage()),
+  GetPage(name:AppRoute.SignIn , page: () =>  SignIn()),
+  GetPage(name:AppRoute.HomePage , page: () =>  DashboardPage()),
 
 ];
 
