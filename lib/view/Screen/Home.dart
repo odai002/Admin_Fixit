@@ -1,7 +1,12 @@
+import 'package:dash_fixit/Controller/home_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../data/model/users.dart';
 import 'Side_Bar_Layout.dart';
 
 class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
@@ -11,64 +16,90 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    HomeController controller = Get.put(HomeController());
     return Scaffold(
-      backgroundColor: Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFFF7F9FC),
       body: Row(
         children: [
-          NavigationSidebar(),
+          const NavigationSidebar(),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(40.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Dashboard Overview',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildStatCard('Number of Receipts', '120', Colors.blue),
-                      _buildStatCard('Number of Users', '45', Colors.green),
-                      _buildStatCard('Contracts Done', '30', Colors.orange),
+                      FutureBuilder<List<User>>(
+                        future: controller.getAllUsers(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return _buildStatCard('Number of Users', 'Loading...', Colors.green);
+                          } else if (snapshot.hasError) {
+                            return _buildStatCard('Number of Users', 'Error', Colors.red);
+                          } else if (snapshot.hasData) {
+                            int userCount = snapshot.data!.length;
+                            return _buildStatCard('Number of Users', '$userCount', Colors.green);
+                          } else {
+                            return _buildStatCard('Number of Users', '0', Colors.grey);
+                          }
+                        },
+                      ),_buildStatCard('Contracts Done', '30', Colors.orange),
                     ],
                   ),
-                  SizedBox(height: 20),
-                  Text(
+                  const SizedBox(height: 20),
+                  const Text(
                     'Users List',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
-                        ],
-                      ),
-                      child: SingleChildScrollView(
-                        child: DataTable(
-                          columnSpacing: 15,
-                          horizontalMargin: 10,
-                          columns: [
-                            DataColumn(label: Text('Name')),
-                            DataColumn(label: Text('Email')),
-                            DataColumn(label: Text('Phone Number')),
-                            DataColumn(label: Text('Role')),
-                            DataColumn(label: Text('Actions')),
-                          ],
-                          rows: [
-                            _buildDataRow('John Doe', 'john.doe@example.com', '123-456-7890', 'Contractor'),
-                            _buildDataRow('Jane Smith', 'jane.smith@example.com', '987-654-3210', 'Homeowner'),
-                          ],
-                        ),
-                      ),
+                    child: FutureBuilder<List<User>>(
+                      future: controller.getAllUsers(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(child: Text('No users found.'));
+                        }
+
+                        final users = snapshot.data!;
+
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+                            ],
+                          ),
+                          child: SingleChildScrollView(
+                            child: DataTable(
+                              columnSpacing: 15,
+                              horizontalMargin: 10,
+                              columns: const [
+                                DataColumn(label: Text('Name')),
+                                DataColumn(label: Text('Email')),
+                                DataColumn(label: Text('Phone Number')),
+                                DataColumn(label: Text('Role')),
+                                DataColumn(label: Text('Actions')),
+                              ],
+                              rows: users.map((user) => _buildDataRow(user,"")).toList(), // إنشاء الصفوف ديناميكياً
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -110,13 +141,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  DataRow _buildDataRow(String name, String email, String phone, String role) {
+  DataRow _buildDataRow(User user,String name) {
     return DataRow(
       cells: [
-        DataCell(Text(name)),
-        DataCell(Text(email)),
-        DataCell(Text(phone)),
-        DataCell(Text(role)),
+        DataCell(Text(user.username)),
+        DataCell(Text(user.email)),
+        DataCell(Text(user.phone)),
+        DataCell(Text(user.role)),
         DataCell(_buildActionCell(name)),
       ],
     );
@@ -125,10 +156,10 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildActionCell(String name) {
     String? action = _rowActions[name]; // Get the current action for this row
 
-    if (action == 'Approve') {
-      return Icon(Icons.check_circle, color: Colors.green);
-    } else if (action == 'Deny') {
-      return Icon(Icons.cancel, color: Colors.red);
+    if (action == 'Banned') {
+      return const Icon(Icons.check_circle, color: Colors.green);
+    } else if (action == 'Un Banned') {
+      return const Icon(Icons.cancel, color: Colors.red);
     } else {
       return PopupMenuButton<String>(
         onSelected: (value) {
@@ -137,13 +168,13 @@ class _DashboardPageState extends State<DashboardPage> {
           });
         },
         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(
-            value: 'Approve',
-            child: Text('Approve'),
+          const PopupMenuItem<String>(
+            value: 'Banned',
+            child: Text('Banned'),
           ),
-          PopupMenuItem<String>(
-            value: 'Deny',
-            child: Text('Deny'),
+          const PopupMenuItem<String>(
+            value: 'Un Banned',
+            child: Text('Un Banned'),
           ),
         ],
       );

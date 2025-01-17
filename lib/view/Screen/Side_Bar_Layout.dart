@@ -1,15 +1,10 @@
-import 'package:dash_fixit/view/Screen/sign_in.dart';
 import 'package:flutter/material.dart';
-import '../../main.dart';
 import 'Home.dart';
-import 'Contracts.dart';
-import 'Notifications.dart';
-import 'Receipt_Crude.dart';
 import 'Receipts.dart';
-import 'Tasks_Mangement.dart';
-import 'Useres.dart';
 
 class NavigationSidebar extends StatelessWidget {
+  const NavigationSidebar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -21,7 +16,7 @@ class NavigationSidebar extends StatelessWidget {
           Container(
             padding: EdgeInsets.only(left: 30.0, top: 20.0),
             color: Colors.white,
-            child: Row(
+            child: const Row(
               children: [
                 Text(
                   'Fixit Dashboard',
@@ -82,16 +77,6 @@ class NavigationSidebar extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.task),
                   title: Text('Tasks'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text('Profile'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: Icon(Icons.settings),
-                  title: Text('Settings'),
                   onTap: () {},
                 ),
               ],
