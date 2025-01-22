@@ -1,79 +1,88 @@
+import 'package:dash_fixit/view/Screen/view_receipt.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:dash_fixit/Controller/receipts_controller.dart';
 import 'Side_Bar_Layout.dart';
 
 class ReceiptsPage extends StatelessWidget {
+  const ReceiptsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
+    ReceiptsController controller = Get.put(ReceiptsController());
     return Scaffold(
-      backgroundColor: Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFFF7F9FC),
       body: Row(
         children: [
-          NavigationSidebar(),
+          const NavigationSidebar(),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Receipts Overview',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10), // Reduced spacing
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: DataTable(
-                        columnSpacing: 15,
-                        horizontalMargin: 10,
-                        columns: [
-                          DataColumn(label: Text('Description')),
-                          DataColumn(label: Text('Receipt Date')),
-                          DataColumn(label: Text('Hw Name')),
-                          DataColumn(label: Text('C Name')),
-                          DataColumn(label: Text('C Email')),
-                          DataColumn(label: Text('Hw Email')),
-                          DataColumn(label: Text('Warning Duration(Days)')),
-                          DataColumn(label: Text('Action')), // Add Action column for Minus icon
-                        ],
-                        rows: [
-                          DataRow(cells: [
-                            DataCell(Text('Please review this receipt.')),
-                            DataCell(Text('2023-12-01')),
-                            DataCell(Text('John Doe')),
-                            DataCell(Text('Jane Smith')),
-                            DataCell(Text('jane.smith@example.com')),
-                            DataCell(Text('john.doe@example.com')),
-                            DataCell(_buildWarningSection()),
-                            DataCell(IconButton(
-                              icon: Icon(Icons.remove), // Minus icon
-                              color: Colors.red, // Set icon color to red
-                              onPressed: () {
-                                // Handle the "minus" action (deleting or disapproving)
-                                print('Disapproved John Doe receipt');
-                              },
-                            )),
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Please review this receipt.')),
-                            DataCell(Text('2023-12-02')),
-                            DataCell(Text('Alice Johnson')),
-                            DataCell(Text('Bob Brown')),
-                            DataCell(Text('bob.brown@example.com')),
-                            DataCell(Text('alice.johnson@example.com')),
-                            DataCell(_buildWarningSection()),
-                            DataCell(IconButton(
-                              icon: Icon(Icons.remove), // Minus icon
-                              color: Colors.red, // Set icon color to red
-                              onPressed: () {
-                                // Handle the "minus" action (deleting or disapproving)
-                                print('Disapproved Alice Johnson receipt');
-                              },
-                            )),
-                          ]),
-                        ],
+                  const SizedBox(height: 10), // Reduced spacing
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (controller.errorMessage.isNotEmpty) {
+                      return Center(child: Text(controller.errorMessage.value));
+                    }
+                    if (controller.receipts.isEmpty) {
+                      return const Center(child: Text("No data available"));
+                    }
+                    return  Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columnSpacing: 15,
+                            horizontalMargin: 10,
+                            columns: const [
+                              DataColumn(label: Text('Description')),
+                              DataColumn(label: Text('Receipt Date')),
+                              DataColumn(label: Text('Hw Name')),
+                              DataColumn(label: Text('C Name')),
+                              DataColumn(label: Text('C Email')),
+                              DataColumn(label: Text('Hw Email')),
+                              DataColumn(label: Text('Warning Duration (Days)')),
+                              DataColumn(label: Text('Action')),
+                            ],
+                            rows: controller.receipts.map((receipt) {
+                              return DataRow(cells: [
+                                const DataCell(Text('Please review this receipt.')),
+                                DataCell(Text("sadadasd" ?? 'N/A')),
+                                DataCell(Text("odai@gkasf.psack" 'N/A')),
+                                DataCell(Text("receipt.cName ??" )),
+                                DataCell(Text("lsaf@fas.cp,")),
+                                DataCell(Text('N/A')),
+                                DataCell(_buildWarningSection(receipt.id)),
+                                DataCell(IconButton(
+                                  icon:  Icon(Icons.remove),
+                                  color: Colors.red,
+                                  onPressed: () async{
+                                    controller.RejectReviewReceipts(receipt.id);
+                                    await controller.fetchReceipts();
+                                    Get.snackbar(
+                                          'Success',
+                                          'Warning sent successfully.',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          );
+                                          await controller.fetchReceipts();
+                                  },
+                                )),
+                              ]);
+                            }).toList(),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -83,39 +92,64 @@ class ReceiptsPage extends StatelessWidget {
     );
   }
 
-  // Updated function to add "View Receipt" button next to "Send Warning" button
-  Widget _buildWarningSection() {
+  Widget _buildWarningSection(int id) {
+    ReceiptsController controller = Get.find();
+    TextEditingController warningDaysController = TextEditingController();
+
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 400), // Set width constraint
+      constraints: const BoxConstraints(maxWidth: 400),
       child: Row(
         children: [
-          // Warning Duration TextField
           Expanded(
             child: TextField(
-              decoration: InputDecoration(
+              controller: warningDaysController,
+              decoration: const InputDecoration(
                 labelText: 'Warning Duration',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
             ),
           ),
-          SizedBox(width: 10), // Space between text field and buttons
-
-          // Send Warning Button
+          const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: () {},
-            child: Text('Send Warning'),
+            onPressed: () {
+              String input = warningDaysController.text.trim();
+              if (input.isNotEmpty) {
+                int? warningDays = int.tryParse(input);
+                if (warningDays != null) {
+                  controller.SendWarning(id, warningDays);
+                  Get.snackbar(
+                    'Success',
+                    'Warning sent successfully.',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                } else {
+                  Get.snackbar(
+                    'Invalid Input',
+                    'Please enter a valid number for warning days.',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                }
+              } else {
+                Get.snackbar(
+                  'Input Required',
+                  'Please enter the number of warning days.',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
+            },
+            child: const Text('Send Warning'),
           ),
-          SizedBox(width: 10), // Space between buttons
-
+          const SizedBox(width:10,),
           // View Receipt Button
           TextButton(
             onPressed: () {
-              // Add logic to view receipt
+              Get.to(() => ViewReceipt(receiptId: id));
             },
-            child: Text('View Receipt'),
+            child: const Text('View Receipt'),
           ),
         ],
       ),
     );
   }
-}
+  }

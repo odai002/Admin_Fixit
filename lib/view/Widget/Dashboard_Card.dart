@@ -6,7 +6,7 @@ class DashboardCard extends StatelessWidget {
   final String percentage;
   final Color color;
 
-  DashboardCard({
+  const DashboardCard({super.key,
     required this.title,
     required this.value,
     required this.percentage,
@@ -16,7 +16,7 @@ class DashboardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),

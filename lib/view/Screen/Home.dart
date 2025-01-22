@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:dash_fixit/Controller/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../Controller/receipts_controller.dart';
 import '../../data/model/users.dart';
 import 'Side_Bar_Layout.dart';
 
@@ -12,11 +15,13 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final Map<String, String> _rowActions = {}; // Tracks actions for each user by name
+  final Map<String, String> rowActions = {}; // Tracks actions for each user by name
 
   @override
   Widget build(BuildContext context) {
     HomeController controller = Get.put(HomeController());
+    ReceiptsController controller1 = Get.put(ReceiptsController());
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       body: Row(
@@ -36,7 +41,22 @@ class _DashboardPageState extends State<DashboardPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatCard('Number of Receipts', '120', Colors.blue),
+                      FutureBuilder(
+                        future: controller1.fetchReceipts(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return _buildStatCard('Number of Receipts', 'Loading...', Colors.blue);
+                          } else if (snapshot.hasError) {
+                            return _buildStatCard('Number of Receipts', 'Error', Colors.red);
+                          } else {
+                            return _buildStatCard(
+                              'Number of Receipts',
+                              controller1.receipts.length.toString(),
+                              Colors.blue,
+                            );
+                          }
+                        },
+                      ),
                       FutureBuilder<List<User>>(
                         future: controller.getAllUsers(),
                         builder: (context, snapshot) {
@@ -95,7 +115,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 DataColumn(label: Text('Role')),
                                 DataColumn(label: Text('Actions')),
                               ],
-                              rows: users.map((user) => _buildDataRow(user,"")).toList(), // إنشاء الصفوف ديناميكياً
+                              rows: users.map((user) => _buildDataRow(user)).toList(),
                             ),
                           ),
                         );
@@ -114,12 +134,12 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildStatCard(String title, String value, Color color) {
     return Expanded(
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10),
-        padding: EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
           ],
         ),
@@ -128,9 +148,9 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               value,
               style: TextStyle(fontSize: 24, color: color, fontWeight: FontWeight.bold),
@@ -141,43 +161,55 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  DataRow _buildDataRow(User user,String name) {
+  DataRow _buildDataRow(User user) {
     return DataRow(
       cells: [
         DataCell(Text(user.username)),
         DataCell(Text(user.email)),
         DataCell(Text(user.phone)),
         DataCell(Text(user.role)),
-        DataCell(_buildActionCell(name)),
+        DataCell(_buildActionCell(user)),
       ],
     );
   }
 
-  Widget _buildActionCell(String name) {
-    String? action = _rowActions[name]; // Get the current action for this row
+    Widget _buildActionCell(User user) {
+      HomeController controller = Get.find<HomeController>();
 
-    if (action == 'Banned') {
-      return const Icon(Icons.check_circle, color: Colors.green);
-    } else if (action == 'Un Banned') {
-      return const Icon(Icons.cancel, color: Colors.red);
-    } else {
       return PopupMenuButton<String>(
-        onSelected: (value) {
-          setState(() {
-            _rowActions[name] = value; // Update the action for this row
-          });
+        onSelected: (value) async {
+          try {
+            if (value == 'Banned') {
+              await controller.banUser(user.id!);
+              setState(() {
+                user.is_banned = true;
+              });
+            } else if (value == 'Un Banned') {
+              await controller.unbanUser(user.id!);
+              setState(() {
+                user.is_banned = false;
+              });
+            }
+          } catch (e) {
+            log('Error updating user status: $e');
+          }
         },
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(
-            value: 'Banned',
-            child: Text('Banned'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'Un Banned',
-            child: Text('Un Banned'),
-          ),
-        ],
+        itemBuilder: (BuildContext context) {
+          return user.is_banned == true
+              ? [
+            const PopupMenuItem<String>(
+              value: 'Un Banned',
+              child: Text('Unbanned'),
+            ),
+          ]
+              : [
+            const PopupMenuItem<String>(
+              value: 'Banned',
+              child: Text('Banned'),
+            ),
+          ];
+        },
       );
     }
   }
-}
+

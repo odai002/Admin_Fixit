@@ -57,7 +57,7 @@ class NotificationsPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(notification['notificationInfo']),
                 if (notification['isReceiptReview'])
                   TextButton(

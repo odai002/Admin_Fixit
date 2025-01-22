@@ -1,53 +1,37 @@
 class User {
-  final int? id;
-  final String role;
-  final String username;
-  final String email;
-  final String phone;
-  final String? address;
-  final String? country;
-  final String? city;
-  final bool? isBanned;
+  int? id;
+  String role;
+  String username;
+  String email;
+  String phone;
+  String? address;
+  String? country;
+  String? city;
+  bool? is_banned; // يجب أن تكون قابلة للتغيير
 
   User({
-     this.id,
+    this.id,
     required this.role,
     required this.username,
     required this.email,
     required this.phone,
-     this.address,
-     this.country,
-     this.city,
-     this.isBanned,
+    this.address,
+    this.country,
+    this.city,
+    this.is_banned,
   });
 
-  // Factory method to create a User object from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      role: json['role'],
-      username: json['username'],
-      email: json['email'],
-      phone: json['phone'],
-      address: json['address'],
-      country: json['country'],
-      city: json['city'],
-      isBanned: json['is_banned'] == 1 || json['is_banned'] == true,
+      id: json['id'] ?? 0,
+      role: json['role'] ?? 'Unknown',
+      username: json['username'] ?? 'Unknown',
+      email: json['email'] ?? 'Unknown',
+      phone: json['phone'] ?? 'Unknown',
+      address: json['address'] ?? '',
+      country: json['country'] ?? '',
+      city: json['city'] ?? '',
+      is_banned: json['is_banned'] == true || json['is_banned'] == 1,
     );
-  }
-
-  // Method to convert a User object to a JSON map
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'role': role,
-      'username': username,
-      'email': email,
-      'phone': phone,
-      'address': address,
-      'country': country,
-      'city': city,
-      'is_banned': isBanned! ? 1 : 0,
-    };
   }
 }
