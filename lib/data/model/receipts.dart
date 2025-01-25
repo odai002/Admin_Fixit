@@ -93,6 +93,8 @@ class Task {
   final String country;
   final String city;
   final int status;
+  final User homeowner;
+  final User contractor;
 
   Task({
     required this.id,
@@ -104,6 +106,8 @@ class Task {
     required this.country,
     required this.city,
     required this.status,
+    required this.homeowner,
+    required this.contractor,
   });
 
   factory Task.fromJson(Map<String, dynamic> json) {
@@ -117,6 +121,8 @@ class Task {
       country: json['country'],
       city: json['city'],
       status: json['status'],
+      homeowner: User.fromJson(json['user']),
+      contractor: User.fromJson(json['contractor']['user']),
     );
   }
 
@@ -134,3 +140,40 @@ class Task {
     };
   }
 }
+  class User {
+  final int id;
+  final String role;
+  final String username;
+  final String email;
+  final String phone;
+  final String address;
+  final String country;
+  final String city;
+  final int isBanned;
+
+  User({
+  required this.id,
+  required this.role,
+  required this.username,
+  required this.email,
+  required this.phone,
+  required this.address,
+  required this.country,
+  required this.city,
+  required this.isBanned,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+  return User(
+  id: json['id'],
+  role: json['role'],
+  username: json['username'],
+  email: json['email'],
+  phone: json['phone'],
+  address: json['address'],
+  country: json['country'],
+  city: json['city'],
+  isBanned: json['is_banned'],
+  );
+  }
+  }

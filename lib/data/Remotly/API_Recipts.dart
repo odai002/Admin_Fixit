@@ -17,6 +17,8 @@ class ApiRecipts {
         'Content-Type': 'application/json',
       });
       log("${response.statusCode}");
+      log(response.body);
+
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);

@@ -56,14 +56,14 @@ class ReceiptsPage extends StatelessWidget {
                             rows: controller.receipts.map((receipt) {
                               return DataRow(cells: [
                                 const DataCell(Text('Please review this receipt.')),
-                                DataCell(Text("sadadasd" ?? 'N/A')),
-                                DataCell(Text("odai@gkasf.psack" 'N/A')),
-                                DataCell(Text("receipt.cName ??" )),
-                                DataCell(Text("lsaf@fas.cp,")),
-                                DataCell(Text('N/A')),
+                                const DataCell(Text("22/7")),
+                                DataCell(Text(receipt.contract.task.homeowner.username)),
+                                DataCell(Text(receipt.contract.task.contractor.username)),
+                                DataCell(Text(receipt.contract.task.homeowner.email)),
+                                DataCell(Text(receipt.contract.task.contractor.email)),
                                 DataCell(_buildWarningSection(receipt.id)),
                                 DataCell(IconButton(
-                                  icon:  Icon(Icons.remove),
+                                  icon:  const Icon(Icons.remove),
                                   color: Colors.red,
                                   onPressed: () async{
                                     controller.RejectReviewReceipts(receipt.id);
